@@ -1,0 +1,83 @@
+---
+title: "植物株高与物种丰富度相关性分析报告"
+format: html
+---
+## 1. 实验指标说明
+本分析关注的指标为 **植物株高 (Shoot height)**，单位为 cm/plant。该指标是衡量植物生长活力和竞争能力的重要形态学参数。
+## 2. 结果解读
+
+### 2.1 线性增长趋势
+结果显示植物株高与物种丰富度之间存在极强的**正相关关系**。随着群落丰富度的增加，植物的垂直生长表现出持续且稳定的增长趋势。
+
+### 2.2 组间变异性
+* **数据紧凑度**：各组的箱体相对较短，表明在相同丰富度水平下，植物株高的个体差异较小，实验结果具有较好的重复性。
+* **离群点分析**：在“2”号和“4”号处理组中观察到个别高位散点，这可能暗示在特定群落组成下，某些个体具有更强的生长潜力。
+
+## 3. 结论与建议
+1.  **丰富度效应**：增加物种丰富度显著促进了植物的纵向生长。结合您之前分析的“地上部干重”数据，说明丰富度的提升不仅增加了生物量（重量），也优化了植物的形态建成（高度）。
+2.  **生物学意义**：这种高度的增加可能反映了群落内部的资源利用效率提升，或是由于物种间互补效应减弱了生长限制。
+## 4.分析代码
+
+```{r}
+# === Load data ===
+# 指向子文件夹里的文件
+df <- read.csv("Figure 4/Shoot height/shoot height.csv")
+
+# === Load required packages ===
+library(ggplot2)
+library(dplyr)
+library(ggpubr)
+
+# === Preprocess data ===
+df$richness <- factor(df$richness, levels = unique(df$richness))
+
+# === Define fill colors ===
+fill_colors <- c(
+  "CK" = "#E4EBD7",
+  "1"  = "#CAD9B0",
+  "2"  = "#AAC18A",
+  "3"  = "#86A762",
+  "4"  = "#6B8C4D"
+)
+
+# === Plot ===
+y_max <- max(df$Shoot_height, na.rm = TRUE) + 5
+
+p <- ggplot(df, aes(x = richness, y = Shoot_height, fill = richness)) +
+  geom_boxplot(width = 0.7, outlier.shape = NA, color = "black") +
+  geom_jitter(size = 3, alpha = 0.7, color = "black", width = 0.3) +
+  scale_fill_manual(values = fill_colors) +
+  theme_bw(base_size = 14) +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.title.y = element_text(size = 26, face = "plain"),
+    axis.text = element_text(size = 22),
+    panel.border = element_rect(color = "black", linewidth = 1.2, fill = NA),
+    axis.ticks = element_line(linewidth = 1.2),
+    axis.ticks.length = unit(0.3, "cm"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(y = expression("Shoot height (cm " * plant^{-1} * ")")) +
+  ylim(75, y_max)
+
+# === Save PDF ===
+# 检查根目录下是否有 output 文件夹，没有则创建一个
+if (!dir.exists(here("output"))) {
+  dir.create(here("output"), recursive = TRUE)
+}
+
+# 保存 PDF 到 根目录/output/ 文件夹中
+ggsave(
+  filename = here("output", "shoot height.pdf"), 
+  plot = p, 
+  device = "pdf", 
+  width = 8, 
+  height = 6, 
+  units = "in"
+)
+
+# 打印一条成功消息
+message("图片已成功保存至: ", here("output", "shoot height.pdf"))
+```
